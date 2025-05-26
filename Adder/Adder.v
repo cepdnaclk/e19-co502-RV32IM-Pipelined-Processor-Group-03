@@ -1,8 +1,8 @@
 module adder(
     input [31:0] PC,
-    output [31:0] PCPLUS4
+    output [31:0] updated_PC
 );
 
-    assign #1 PCPLUS4 =  PC + 4;
+    assign #1 updated_PC =  PC + 4;
 
 endmodule
