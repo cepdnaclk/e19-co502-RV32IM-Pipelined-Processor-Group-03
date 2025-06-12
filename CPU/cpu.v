@@ -1,6 +1,6 @@
 `include "../PC/pc.v"
 `include "../IMEM/imem.v"
-`
+`include "../ImmGenerator/imm_generator.v"
 
 module riscv_cpu (
     input wire clk,
