@@ -42,7 +42,7 @@ wire [4:0] rd  = IF_ID_instr[11:7];
 wire [6:0] opcode = IF_ID_instr[6:0];
 wire [2:0] funct3 = IF_ID_instr[14:12];
 wire [6:0] funct7 = IF_ID_instr[31:25];
-wire [31:7] immediate_reg = IF_ID_instr[31:7]; //-------------------------------------------------------------------------------------------
+wire [31:7] immediate_reg = IF_ID_instr[31:7]; 
 
 wire [31:0] rd1, rd2;
 register_file rf (
