@@ -77,7 +77,7 @@ control_unit cu (
 
 // ----------- ID/EX Pipeline Register -----------
 reg [31:0] ID_EX_PC, ID_EX_imm, ID_EX_rd1, ID_EX_rd2;
-reg [4:0] ID_EX_rs1, ID_EX_rs2, ID_EX_rd;
+reg [4:0] ID_EX_rd;
 reg [2:0] ID_EX_funct3;
 reg [6:0] ID_EX_funct7;
 reg ID_EX_reg_write, ID_EX_mem_read, ID_EX_mem_write, ID_EX_mem_to_reg, ID_EX_alu_src;
@@ -88,8 +88,6 @@ always @(posedge clk) begin
     ID_EX_rd1 <= rd1;
     ID_EX_rd2 <= rd2;
     ID_EX_imm <= imm;
-    ID_EX_rs1 <= rs1;
-    ID_EX_rs2 <= rs2;
     ID_EX_rd <= rd;
     ID_EX_funct3 <= funct3;
     ID_EX_funct7 <= funct7;
