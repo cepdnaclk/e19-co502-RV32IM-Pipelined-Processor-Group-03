@@ -1,8 +1,18 @@
-`include "../PC/pc.v"
-`include "../IMEM/imem.v"
-`include "../ImmGenerator/imm_generator.v"
+// Updated cpu module considering the revised data_memory
 
-module riscv_cpu (
+// `include "PC/pc.v"
+// `include "IMEM/instruction_memory.v"
+// `include "ImmGenerator/imm_generator.v"
+// `include "ControlUnit/control_unit.v"
+// `include "RegisterFile/register_file.v"
+// `include "ALUControlUnit/alu_control_unit.v"
+// `include "ALU/alu_core.v"
+// `include "ALU/alu_m_extension.v"
+// `include "BranchCompare/branch_compare.v"
+// `include "DataMemory/data_memory.v"
+`timescale 1ns / 1ps
+
+module cpu (
     input wire clk,
     input wire reset
 );
@@ -20,7 +30,7 @@ assign PC_next = pc_src ? branch_target : PC + 4;
 pc pc (
     .clk(clk),
     .reset(reset),
-    .pc_write(1'b1),  // Always write to PC for this simple CPU
+    .pc_write(1'b1),
     .next_pc(PC_next),
     .pc_out(PC)
 );
@@ -120,7 +130,7 @@ wire [31:0] alu_input_b = (ID_EX_alu_src) ? ID_EX_imm : ID_EX_rd2;
 wire [31:0] alu_out_standard;
 wire [31:0] alu_out_mext;
 
-alu alu_core (
+alu_core alu_core (
     .data1(ID_EX_rd1),
     .data2(alu_input_b),
     .alu_control(alu_control),
@@ -151,12 +161,14 @@ assign pc_src = ID_EX_branch && branch_taken;
 // ----------- EX/MEM Pipeline Register -----------
 reg [31:0] EX_MEM_alu_out, EX_MEM_rd2;
 reg [4:0] EX_MEM_rd;
+reg [2:0] EX_MEM_funct3;
 reg EX_MEM_reg_write, EX_MEM_mem_read, EX_MEM_mem_write, EX_MEM_mem_to_reg;
 
 always @(posedge clk) begin
     EX_MEM_alu_out <= alu_out;
     EX_MEM_rd2 <= ID_EX_rd2;
     EX_MEM_rd <= ID_EX_rd;
+    EX_MEM_funct3 <= ID_EX_funct3;
     EX_MEM_reg_write <= ID_EX_reg_write;
     EX_MEM_mem_read <= ID_EX_mem_read;
     EX_MEM_mem_write <= ID_EX_mem_write;
@@ -164,14 +176,17 @@ always @(posedge clk) begin
 end
 
 // ----------- MEM Stage -----------
+wire [1:0] mem_data_type = EX_MEM_funct3[1:0];
+wire [1:0] mem_write_type = EX_MEM_mem_write ? EX_MEM_funct3[1:0] : 2'b00;
 wire [31:0] mem_data_out;
+
 data_memory dmem (
     .clk(clk),
-    .addr(EX_MEM_alu_out),
-    .write_data(EX_MEM_rd2),
-    .mem_read(EX_MEM_mem_read),
-    .mem_write(EX_MEM_mem_write),
-    .read_data(mem_data_out)
+    .address(EX_MEM_alu_out),
+    .data_in(EX_MEM_rd2),
+    .write(mem_write_type),
+    .data(mem_data_type),
+    .data_out(mem_data_out)
 );
 
 // ----------- MEM/WB Pipeline Register -----------
