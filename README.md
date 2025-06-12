@@ -1,6 +1,8 @@
-___
-# DELETE THIS INSTRUCTIONS AND ADD A SHORT INTRODUCTION ABOUT YOUR PROJECT
-___
+---
+
+# RISC-V 32IM Pipelined Processor - Group 03
+
+---
 
 ## Please refer the instructions in below URL:
 
