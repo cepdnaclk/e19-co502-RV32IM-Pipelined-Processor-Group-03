@@ -10,7 +10,12 @@ module riscv_cpu (
 // ----------- PC -----------
 reg [31:0] PC;
 wire [31:0] PC_next;
-assign PC_next = PC + 4;
+
+// Branch predictor result
+wire [31:0] branch_target;
+wire pc_src;
+
+assign PC_next = pc_src ? branch_target : PC + 4;
 
 pc pc (
     .clk(clk),
@@ -42,7 +47,6 @@ wire [4:0] rd  = IF_ID_instr[11:7];
 wire [6:0] opcode = IF_ID_instr[6:0];
 wire [2:0] funct3 = IF_ID_instr[14:12];
 wire [6:0] funct7 = IF_ID_instr[31:25];
-wire [31:7] immediate_reg = IF_ID_instr[31:7]; 
 
 wire [31:0] rd1, rd2;
 register_file rf (
@@ -53,7 +57,7 @@ register_file rf (
     .rd_data(WB_result),
     .we(MEM_WB_reg_write),
     .rs1_data(rd1),
-    .rs1_data(rd2)
+    .rs2_data(rd2)
 );
 
 wire [31:0] imm;
@@ -63,7 +67,7 @@ imm_generator imm_gen (
 );
 
 // Control Signals
-wire reg_write, mem_read, mem_write, mem_to_reg, alu_src;
+wire reg_write, mem_read, mem_write, mem_to_reg, alu_src, branch;
 wire [1:0] alu_op;
 control_unit cu (
     .opcode(opcode),
@@ -72,7 +76,8 @@ control_unit cu (
     .mem_write(mem_write),
     .mem_to_reg(mem_to_reg),
     .alu_src(alu_src),
-    .alu_op(alu_op)
+    .alu_op(alu_op),
+    .branch(branch)
 );
 
 // ----------- ID/EX Pipeline Register -----------
@@ -80,7 +85,7 @@ reg [31:0] ID_EX_PC, ID_EX_imm, ID_EX_rd1, ID_EX_rd2;
 reg [4:0] ID_EX_rd;
 reg [2:0] ID_EX_funct3;
 reg [6:0] ID_EX_funct7;
-reg ID_EX_reg_write, ID_EX_mem_read, ID_EX_mem_write, ID_EX_mem_to_reg, ID_EX_alu_src;
+reg ID_EX_reg_write, ID_EX_mem_read, ID_EX_mem_write, ID_EX_mem_to_reg, ID_EX_alu_src, ID_EX_branch;
 reg [1:0] ID_EX_alu_op;
 
 always @(posedge clk) begin
@@ -97,6 +102,7 @@ always @(posedge clk) begin
     ID_EX_mem_to_reg <= mem_to_reg;
     ID_EX_alu_src <= alu_src;
     ID_EX_alu_op <= alu_op;
+    ID_EX_branch <= branch;
 end
 
 // ----------- EX Stage -----------
@@ -128,7 +134,6 @@ alu_m_extension alu_mext_core (
     .result(alu_out_mext)
 );
 
-// Select result from appropriate ALU
 wire [31:0] alu_out = (alu_control[4:3] == 2'b01) ? alu_out_mext : alu_out_standard;
 
 // ----------- Branch Comparator -----------
@@ -140,12 +145,8 @@ branch_compare branch_cmp (
     .branch_taken(branch_taken)
 );
 
-// ----------- Branch Target Calculation -----------
-wire [31:0] branch_target = ID_EX_pc + ID_EX_imm;
-
-// ----------- PC Select Signal (for next stage) -----------
-assign pc_src = (branch_taken && ID_EX_branch);
-assign next_pc = pc_src ? branch_target : PC_plus_4;
+assign branch_target = ID_EX_PC + ID_EX_imm;
+assign pc_src = ID_EX_branch && branch_taken;
 
 // ----------- EX/MEM Pipeline Register -----------
 reg [31:0] EX_MEM_alu_out, EX_MEM_rd2;
