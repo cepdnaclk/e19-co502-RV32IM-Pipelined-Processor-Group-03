@@ -131,6 +131,22 @@ alu_m_extension alu_mext_core (
 // Select result from appropriate ALU
 wire [31:0] alu_out = (alu_control[4:3] == 2'b01) ? alu_out_mext : alu_out_standard;
 
+// ----------- Branch Comparator -----------
+wire branch_taken;
+branch_compare branch_cmp (
+    .reg1(ID_EX_rd1),
+    .reg2(ID_EX_rd2),
+    .funct3(ID_EX_funct3),
+    .branch_taken(branch_taken)
+);
+
+// ----------- Branch Target Calculation -----------
+wire [31:0] branch_target = ID_EX_pc + ID_EX_imm;
+
+// ----------- PC Select Signal (for next stage) -----------
+assign pc_src = (branch_taken && ID_EX_branch);
+assign next_pc = pc_src ? branch_target : PC_plus_4;
+
 // ----------- EX/MEM Pipeline Register -----------
 reg [31:0] EX_MEM_alu_out, EX_MEM_rd2;
 reg [4:0] EX_MEM_rd;
