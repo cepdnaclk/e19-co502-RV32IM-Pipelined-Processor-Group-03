@@ -1,4 +1,4 @@
-module controlUnit(
+module control_unit(
     INSTRUCTION,
     WRITE_ENABLE,         // RegWrite back
     MEMORY_ACCESS,        // Memory Access: Load/Store

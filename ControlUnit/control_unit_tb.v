@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-module controlUnit_tb;
+module control_unit_tb;
 
     // Inputs
     reg [31:0] INSTRUCTION;

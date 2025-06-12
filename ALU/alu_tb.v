@@ -1,5 +1,5 @@
 
-module tb_alu;
+module alu_tb;
     // Testbench signals
     reg [31:0] data1, data2;
     reg [4:0] ALU_OPCODE;
