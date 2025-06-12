@@ -1,97 +1,97 @@
 module control_unit(
-    INSTRUCTION,
-    WRITE_ENABLE,         // RegWrite back
-    MEMORY_ACCESS,        // Memory Access: Load/Store
-    MEM_WRITE,            // Memory Write
-    MEM_READ,             // Memory Read
-    JUMP_AND_LINK,        // Enables JALR and JAL
-    ALU_OPCODE,           // Specifies ALU operation
-    IMMEDIATE_SELECT,     // Selects the source of immediate
-    OFFSET_GENARATOR,     // Selects type of PC offset used in jumps/branches.
-    BRANCH,JUMP,          // Control signals for branching and jumping.
-    IMM_SEL        // Specifies the type of immediate value(I-type, S-type, B-type, U-type)
+    instruction,
+    write_enable,         // RegWrite back
+    memory_access,        // Memory Access: Load/Store
+    mem_write,            // Memory Write
+    mem_read,             // Memory Read
+    jump_and_link,        // Enables JALR and JAL
+    alu_opcode,           // Specifies ALU operation
+    immediate_select,     // Selects the source of immediate
+    offset_generator,     // Selects type of PC offset used in jumps/branches.
+    branch,jump,          // Control signals for branching and jumping.
+    imm_sel        // Specifies the type of immediate value(I-type, S-type, B-type, U-type)
 );
 
-input[31:0] INSTRUCTION;
-output reg[4:0] ALU_OPCODE;
-output reg[2:0] IMM_SEL;
-output reg WRITE_ENABLE,MEMORY_ACCESS,MEM_WRITE,MEM_READ,JUMP_AND_LINK,BRANCH,JUMP;
-output reg[1:0]OFFSET_GENARATOR,IMMEDIATE_SELECT;
-wire [6:0] OPCODE,FUNCT7;
-wire [2:0] FUNCT3;
+input[31:0] instruction;
+output reg[4:0] alu_opcode;
+output reg[2:0] imm_sel;
+output reg write_enable,memory_access,mem_write,mem_read,jump_and_link,branch,jump;
+output reg[1:0]offset_generator,immediate_select;
+wire [6:0] opcode,funct7;
+wire [2:0] funct3;
 
 
-assign OPCODE = INSTRUCTION[6:0];
-assign FUNCT3 = INSTRUCTION[14:12];
-assign FUNCT7 = INSTRUCTION[31:25];
+assign opcode = instruction[6:0];
+assign funct3 = instruction[14:12];
+assign funct7 = instruction[31:25];
 
 
-always @(OPCODE,FUNCT3,FUNCT7) begin
+always @(opcode,funct3,funct7) begin
     #1 
-    case(OPCODE)
+    case(opcode)
     7'b0110011:begin //R type istruction
-        IMM_SEL = 3'bxxx;
-        WRITE_ENABLE = 1'b1;
-        MEMORY_ACCESS = 1'b0;
-        MEM_WRITE = 1'b0;
-        MEM_READ = 1'b0;
-        JUMP_AND_LINK = 1'b0;
-        IMMEDIATE_SELECT = 2'b00;
-        OFFSET_GENARATOR = 2'b00;
-        BRANCH = 1'b0;
-        JUMP = 1'b0 ;
+        imm_sel = 3'bxxx;
+        write_enable = 1'b1;
+        memory_access = 1'b0;
+        mem_write = 1'b0;
+        mem_read = 1'b0;
+        jump_and_link = 1'b0;
+        immediate_select = 2'b00;
+        offset_generator = 2'b00;
+        branch = 1'b0;
+        jump = 1'b0 ;
         
-        case({FUNCT7,FUNCT3})
-        10'b0000000000:ALU_OPCODE = 5'b00000; // ADD
-        10'b0100000000:ALU_OPCODE = 5'b00001; // SUB
-        10'b0000000110:ALU_OPCODE = 5'b00010; // OR
-        10'b0000000100:ALU_OPCODE = 5'b00011; // XOR
-        10'b0000000111:ALU_OPCODE = 5'b00100; // AND 
-        10'b0000000101:ALU_OPCODE = 5'b00101; // SRL
-        10'b0000000001:ALU_OPCODE = 5'b00110; // SLL
-        10'b0100000101:ALU_OPCODE = 5'b00111; // SRA
-        10'b0000001000:ALU_OPCODE = 5'b01000; // MUL
-        10'b0000001001:ALU_OPCODE = 5'b01001; // MULH
-        10'b0000001011:ALU_OPCODE = 5'b01010; // MULHU
-        10'b0000001010:ALU_OPCODE = 5'b01011; // MULHSU
-        10'b0000001100:ALU_OPCODE = 5'b01100; // DIV
-        10'b0000001101:ALU_OPCODE = 5'b01101; // DIVH
-        10'b0000001110:ALU_OPCODE = 5'b01110; // REM
-        10'b0000001111:ALU_OPCODE = 5'b01111; // REMU
-        10'b0000000010:ALU_OPCODE = 5'b10000; // SLT 
+        case({funct7,funct3})
+        10'b0000000000:alu_opcode = 5'b00000; // ADD
+        10'b0100000000:alu_opcode = 5'b00001; // SUB
+        10'b0000000110:alu_opcode = 5'b00010; // OR
+        10'b0000000100:alu_opcode = 5'b00011; // XOR
+        10'b0000000111:alu_opcode = 5'b00100; // AND 
+        10'b0000000101:alu_opcode = 5'b00101; // SRL
+        10'b0000000001:alu_opcode = 5'b00110; // SLL
+        10'b0100000101:alu_opcode = 5'b00111; // SRA
+        10'b0000001000:alu_opcode = 5'b01000; // MUL
+        10'b0000001001:alu_opcode = 5'b01001; // MULH
+        10'b0000001011:alu_opcode = 5'b01010; // MULHU
+        10'b0000001010:alu_opcode = 5'b01011; // MULHSU
+        10'b0000001100:alu_opcode = 5'b01100; // DIV
+        10'b0000001101:alu_opcode = 5'b01101; // DIVH
+        10'b0000001110:alu_opcode = 5'b01110; // REM
+        10'b0000001111:alu_opcode = 5'b01111; // REMU
+        10'b0000000010:alu_opcode = 5'b10000; // SLT 
         endcase
     end
 
     7'b0010011:begin //I type istruction
-        IMM_SEL = 3'b000;
-        WRITE_ENABLE = 1'b1;
-        MEMORY_ACCESS = 1'b0;
-        MEM_WRITE = 1'b0;
-        MEM_READ = 1'b0;
-        JUMP_AND_LINK = 1'b0;
-        IMMEDIATE_SELECT = 2'b10;
-        OFFSET_GENARATOR = 2'b00;
-        BRANCH = 1'b0;
-        JUMP = 1'b0 ;
+        imm_sel = 3'b000;
+        write_enable = 1'b1;
+        memory_access = 1'b0;
+        mem_write = 1'b0;
+        mem_read = 1'b0;
+        jump_and_link = 1'b0;
+        immediate_select = 2'b10;
+        offset_generator = 2'b00;
+        branch = 1'b0;
+        jump = 1'b0 ;
 
-        case(FUNCT3)
-        3'b000:ALU_OPCODE = 5'b00000; // ADDI
-        3'b010:ALU_OPCODE = 5'b10000; // SLTI
-        3'b111:ALU_OPCODE = 5'b00100; // ANDI
-        3'b110:ALU_OPCODE = 5'b00010; // ORI
-        3'b100:ALU_OPCODE = 5'b00011; // XORI
+        case(funct3)
+        3'b000:alu_opcode = 5'b00000; // ADDI
+        3'b010:alu_opcode = 5'b10000; // SLTI
+        3'b111:alu_opcode = 5'b00100; // ANDI
+        3'b110:alu_opcode = 5'b00010; // ORI
+        3'b100:alu_opcode = 5'b00011; // XORI
         endcase
 
-        case(FUNCT7)
+        case(funct7)
         7'b0000000:begin
-            case (FUNCT3)
-                3'b001: ALU_OPCODE = 5'b00110; //SLLI
-                3'b101: ALU_OPCODE = 5'b00101; //SRLI 
+            case (funct3)
+                3'b001: alu_opcode = 5'b00110; //SLLI
+                3'b101: alu_opcode = 5'b00101; //SRLI 
             endcase
         end
         7'b0100000:begin
-            case (FUNCT3)
-                3'b101: ALU_OPCODE = 5'b00111; //SRAI
+            case (funct3)
+                3'b101: alu_opcode = 5'b00111; //SRAI
                 endcase
         end
         endcase
@@ -99,101 +99,101 @@ always @(OPCODE,FUNCT3,FUNCT7) begin
     end
 
     7'b0000011:begin //LW istruction
-        IMM_SEL = 3'b000;
-        WRITE_ENABLE = 1'b1;
-        MEMORY_ACCESS = 1'b1;
-        MEM_WRITE = 1'b0;
-        MEM_READ = 1'b1;
-        JUMP_AND_LINK = 1'b0;
-        IMMEDIATE_SELECT = 2'b10;
-        OFFSET_GENARATOR = 2'b00;
-        BRANCH = 1'b0;
-        JUMP = 1'b0 ;
-        ALU_OPCODE = 5'b00000;
+        imm_sel = 3'b000;
+        write_enable = 1'b1;
+        memory_access = 1'b1;
+        mem_write = 1'b0;
+        mem_read = 1'b1;
+        jump_and_link = 1'b0;
+        immediate_select = 2'b10;
+        offset_generator = 2'b00;
+        branch = 1'b0;
+        jump = 1'b0 ;
+        alu_opcode = 5'b00000;
         end 
 
     7'b0100011:begin //S type istruction
-        IMM_SEL = 3'b001;
-        WRITE_ENABLE = 1'b0;
-        MEMORY_ACCESS = 1'b1;
-        MEM_WRITE = 1'b1;    
-        MEM_READ = 1'b0;
-        JUMP_AND_LINK = 1'b0;    
-        IMMEDIATE_SELECT = 2'b10;
-        OFFSET_GENARATOR = 2'b00;
-        BRANCH = 1'b0;
-        JUMP = 1'b0 ;
-        ALU_OPCODE = 5'b00000; 
+        imm_sel = 3'b001;
+        write_enable = 1'b0;
+        memory_access = 1'b1;
+        mem_write = 1'b1;    
+        mem_read = 1'b0;
+        jump_and_link = 1'b0;    
+        immediate_select = 2'b10;
+        offset_generator = 2'b00;
+        branch = 1'b0;
+        jump = 1'b0 ;
+        alu_opcode = 5'b00000; 
     end
 
     7'b1101111:begin //J type istruction
-        IMM_SEL = 3'b010;
-        WRITE_ENABLE = 1'b1;
-        MEMORY_ACCESS = 1'b0;
-        MEM_WRITE = 1'b0;
-        MEM_READ = 1'b0;
-        JUMP_AND_LINK = 1'b1;
-        IMMEDIATE_SELECT = 2'b10;
-        OFFSET_GENARATOR = 2'b10;
-        BRANCH = 1'b0;
-        JUMP = 1'b1 ;
-        ALU_OPCODE = 5'b00000;
+        imm_sel = 3'b010;
+        write_enable = 1'b1;
+        memory_access = 1'b0;
+        mem_write = 1'b0;
+        mem_read = 1'b0;
+        jump_and_link = 1'b1;
+        immediate_select = 2'b10;
+        offset_generator = 2'b10;
+        branch = 1'b0;
+        jump = 1'b1 ;
+        alu_opcode = 5'b00000;
     end
 
     7'b1100111:begin //JALR istruction
-        IMM_SEL = 3'b000;
-        WRITE_ENABLE = 1'b1;
-        MEMORY_ACCESS = 1'b0;
-        MEM_WRITE = 1'b0;
-        MEM_READ = 1'b0;
-        JUMP_AND_LINK = 1'b1;
-        IMMEDIATE_SELECT = 2'b10;
-        OFFSET_GENARATOR = 2'b00;
-        BRANCH = 1'b0;
-        JUMP = 1'b1;
-        ALU_OPCODE = 5'b00000;
+        imm_sel = 3'b000;
+        write_enable = 1'b1;
+        memory_access = 1'b0;
+        mem_write = 1'b0;
+        mem_read = 1'b0;
+        jump_and_link = 1'b1;
+        immediate_select = 2'b10;
+        offset_generator = 2'b00;
+        branch = 1'b0;
+        jump = 1'b1;
+        alu_opcode = 5'b00000;
     end
 
     7'b0110111:begin // LUI
-        IMM_SEL = 3'b011;
-        WRITE_ENABLE = 1'b1;
-        MEMORY_ACCESS = 1'b0;
-        MEM_WRITE = 1'b0;
-        MEM_READ = 1'b0;
-        JUMP_AND_LINK = 1'b0;
-        IMMEDIATE_SELECT = 2'b10;
-        OFFSET_GENARATOR = 2'b00;
-        BRANCH = 1'b0;
-        JUMP = 1'b0;
-        ALU_OPCODE = 5'b10001;
+        imm_sel = 3'b011;
+        write_enable = 1'b1;
+        memory_access = 1'b0;
+        mem_write = 1'b0;
+        mem_read = 1'b0;
+        jump_and_link = 1'b0;
+        immediate_select = 2'b10;
+        offset_generator = 2'b00;
+        branch = 1'b0;
+        jump = 1'b0;
+        alu_opcode = 5'b10001;
     end
 
      7'b0010111:begin // AUIPC
-        IMM_SEL = 3'b011;
-        WRITE_ENABLE = 1'b1;
-        MEMORY_ACCESS = 1'b0;
-        MEM_WRITE = 1'b0;
-        MEM_READ = 1'b0;
-        JUMP_AND_LINK = 1'b0;
-        IMMEDIATE_SELECT = 2'b10;
-        OFFSET_GENARATOR = 2'b10;
-        BRANCH = 1'b0;
-        JUMP = 1'b0;
-        ALU_OPCODE = 5'b00000;
+        imm_sel = 3'b011;
+        write_enable = 1'b1;
+        memory_access = 1'b0;
+        mem_write = 1'b0;
+        mem_read = 1'b0;
+        jump_and_link = 1'b0;
+        immediate_select = 2'b10;
+        offset_generator = 2'b10;
+        branch = 1'b0;
+        jump = 1'b0;
+        alu_opcode = 5'b00000;
     end
     
     7'b1100011:begin // B type instruction
-        IMM_SEL = 3'b100;
-        WRITE_ENABLE = 1'b0;
-        MEMORY_ACCESS = 1'b0;
-        MEM_WRITE = 1'b0;
-        MEM_READ = 1'b0;
-        JUMP_AND_LINK = 1'b0;
-        IMMEDIATE_SELECT = 2'b10;
-        OFFSET_GENARATOR = 2'b10;
-        BRANCH = 1'b1;
-        JUMP = 1'b0;
-        ALU_OPCODE = 5'b00000;
+        imm_sel = 3'b100;
+        write_enable = 1'b0;
+        memory_access = 1'b0;
+        mem_write = 1'b0;
+        mem_read = 1'b0;
+        jump_and_link = 1'b0;
+        immediate_select = 2'b10;
+        offset_generator = 2'b10;
+        branch = 1'b1;
+        jump = 1'b0;
+        alu_opcode = 5'b00000;
     end
     
 
