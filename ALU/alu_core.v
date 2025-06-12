@@ -1,4 +1,4 @@
-module alu (
+module alu_core (
     input [31:0] data1,
     input [31:0] data2,
     input [4:0] alu_control,

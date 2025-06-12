@@ -100,7 +100,8 @@ always @(posedge clk) begin
 end
 
 // ----------- EX Stage -----------
-wire [3:0] alu_control;
+wire [4:0] alu_control;
+
 alu_control_unit alu_cu (
     .alu_op(ID_EX_alu_op),
     .funct3(ID_EX_funct3),
@@ -109,13 +110,26 @@ alu_control_unit alu_cu (
 );
 
 wire [31:0] alu_input_b = (ID_EX_alu_src) ? ID_EX_imm : ID_EX_rd2;
-wire [31:0] alu_out;
-alu alu (
-    .a(ID_EX_rd1),
-    .b(alu_input_b),
+
+wire [31:0] alu_out_standard;
+wire [31:0] alu_out_mext;
+
+alu alu_core (
+    .data1(ID_EX_rd1),
+    .data2(alu_input_b),
     .alu_control(alu_control),
-    .result(alu_out)
+    .result(alu_out_standard)
 );
+
+alu_m_extension alu_mext_core (
+    .data1(ID_EX_rd1),
+    .data2(alu_input_b),
+    .alu_control(alu_control),
+    .result(alu_out_mext)
+);
+
+// Select result from appropriate ALU
+wire [31:0] alu_out = (alu_control[4:3] == 2'b01) ? alu_out_mext : alu_out_standard;
 
 // ----------- EX/MEM Pipeline Register -----------
 reg [31:0] EX_MEM_alu_out, EX_MEM_rd2;
