@@ -1,7 +1,6 @@
 ---
 
-# RISC-V 32IM Pipelined Processor - Group 03
-
+# RISC-V 32IM Pipelined Processor
 ---
 
 ## Please refer the instructions in below URL:
