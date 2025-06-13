@@ -33,7 +33,7 @@ module data_memory (
             2'b00: data_out = {{24{mem[addr][7]}}, mem[addr]};                  // Sign-extended byte
             2'b01: data_out = {{16{mem[addr + 1][7]}}, mem[addr + 1], mem[addr]}; // Sign-extended halfword
             2'b10: data_out = {mem[addr + 3], mem[addr + 2], mem[addr + 1], mem[addr]}; // Full word
-            default: data_out = 32'b0;
+            default: data_out = 32'bx;
         endcase
     end
 
