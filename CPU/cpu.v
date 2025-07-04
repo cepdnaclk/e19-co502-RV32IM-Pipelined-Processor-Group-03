@@ -1,15 +1,13 @@
-// Updated cpu module considering the revised data_memory
-
-// `include "PC/pc.v"
-// `include "IMEM/instruction_memory.v"
-// `include "ImmGenerator/imm_generator.v"
-// `include "ControlUnit/control_unit.v"
-// `include "RegisterFile/register_file.v"
-// `include "ALUControlUnit/alu_control_unit.v"
-// `include "ALU/alu_core.v"
-// `include "ALU/alu_m_extension.v"
-// `include "BranchCompare/branch_compare.v"
-// `include "DataMemory/data_memory.v"
+`include ".//PC/pc.v"
+`include ".//IMEM/instruction_memory.v"
+`include ".//ImmGenerator/imm_generator.v"
+`include ".//ControlUnit/control_unit.v"
+`include ".//RegisterFile/register_file.v"
+`include ".//ALUControlUnit/alu_control_unit.v"
+`include ".//ALU/alu_core.v"
+`include ".//ALU/alu_m_extension.v"
+`include ".//BranchCompare/branch_compare.v"
+`include ".//DataMemory/data_memory.v"
 `timescale 1ns / 1ps
 
 module cpu (
@@ -18,7 +16,7 @@ module cpu (
 );
 
 // ----------- PC -----------
-reg [31:0] PC;
+wire [31:0] PC;
 wire [31:0] PC_next;
 
 // Branch predictor result
@@ -39,7 +37,7 @@ pc pc (
 wire [31:0] instr;
 instruction_memory imem (
     .addr(PC),
-    .instruction(instr)
+    .instr(instr)
 );
 
 // ----------- IF/ID Pipeline Register -----------
