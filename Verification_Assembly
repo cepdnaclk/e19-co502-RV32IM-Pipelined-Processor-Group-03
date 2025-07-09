@@ -1,0 +1,18 @@
+# Load
+addi x1, x0, 5       
+addi x2, x0, 3        
+
+# Addition
+add  x3, x1, x2       
+
+# Loop setup
+addi x4, x0, 4        
+addi x5, x0, 0        
+
+loop:
+add  x5, x5, x1       
+addi x4, x4, -1       
+bne  x4, x0, loop    
+
+# Multiplication (requires M extension)
+mul x6, x1, x2        
