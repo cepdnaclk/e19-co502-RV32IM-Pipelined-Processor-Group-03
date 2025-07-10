@@ -3,13 +3,13 @@ layout: home
 permalink: index.html
 
 # Please update this with your repository name and title
-repository-name: eYY-XXX-project-template
+repository-name: e19-co502-RV32IM_Pipelined_Processor_Group-03
 title:
 ---
 
-[comment]: # "This is the standard layout for the project, but you can clean this and use your own template"
+<!-- [comment]: # "This is the standard layout for the project, but you can clean this and use your own template" -->
 
-# Project Title
+# RISC-V 32 IM Pipelined Processor
 
 ---
 
@@ -20,9 +20,8 @@ This is a sample image, to show how to add images to your page. To learn more op
  -->
 
 ## Team
--  eNumber, Name, [email](mailto:name@email.com)
--  eNumber, Name, [email](mailto:name@email.com)
--  eNumber, Name, [email](mailto:name@email.com)
+-  e19007, Achsuthan T., [email](mailto:e19007@eng.pdn.ac.lk)
+-  e19266, Nithusikan T., [email](mailto:e19266@eng.pdn.ac.lk)
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -39,10 +38,10 @@ This is a sample image, to show how to add images to your page. To learn more op
 
 .....
 
-## Links
+## Links https://github.com/cepdnaclk/e19-co502-RV32IM-Pipelined-Processor-Group-03
 
-- [Project Repository](https://github.com/cepdnaclk/{{ page.repository-name }}){:target="_blank"}
-- [Project Page](https://cepdnaclk.github.io/{{ page.repository-name}}){:target="_blank"}
+- [Project Repository](https://github.com/cepdnaclk/{{ page.e19-co502-RV32IM-Pipelined-Processor-Group-03}}){:target="_blank"}
+- [Project Page](https://cepdnaclk.github.io/{{ page.e19-co502-RV32IM-Pipelined-Processor-Group-03}}){:target="_blank"}
 - [Department of Computer Engineering](http://www.ce.pdn.ac.lk/)
 - [University of Peradeniya](https://eng.pdn.ac.lk/)
 
