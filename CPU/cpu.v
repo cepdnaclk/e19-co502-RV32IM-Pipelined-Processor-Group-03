@@ -8,6 +8,9 @@
 `include ".//ALU/alu_m_extension.v"
 `include ".//BranchCompare/branch_compare.v"
 `include ".//DataMemory/data_memory.v"
+`include ".//CPU/forwarding_unit.v"
+`include ".//CPU/hazard_detection_unit.v"
+
 `timescale 1ns / 1ps
 
 module cpu (
@@ -28,7 +31,7 @@ assign PC_next = pc_src ? branch_target : PC + 4;
 pc pc (
     .clk(clk),
     .reset(reset),
-    .pc_write(1'b1),
+    .pc_write(PCWrite),
     .next_pc(PC_next),
     .pc_out(PC)
 );
@@ -128,19 +131,6 @@ wire [31:0] alu_input_b = (ID_EX_alu_src) ? ID_EX_imm : ID_EX_rd2;
 wire [31:0] alu_out_standard;
 wire [31:0] alu_out_mext;
 
-alu_core alu_core (
-    .data1(ID_EX_rd1),
-    .data2(alu_input_b),
-    .alu_control(alu_control),
-    .result(alu_out_standard)
-);
-
-alu_m_extension alu_mext_core (
-    .data1(ID_EX_rd1),
-    .data2(alu_input_b),
-    .alu_control(alu_control),
-    .result(alu_out_mext)
-);
 
 wire [31:0] alu_out = (alu_control[4:3] == 2'b01) ? alu_out_mext : alu_out_standard;
 
@@ -162,7 +152,7 @@ reg [4:0] EX_MEM_rd;
 reg [2:0] EX_MEM_funct3;
 reg EX_MEM_reg_write, EX_MEM_mem_read, EX_MEM_mem_write, EX_MEM_mem_to_reg;
 
-always @(posedge clk) begin
+always @(*) begin
     EX_MEM_alu_out <= alu_out;
     EX_MEM_rd2 <= ID_EX_rd2;
     EX_MEM_rd <= ID_EX_rd;
@@ -172,6 +162,112 @@ always @(posedge clk) begin
     EX_MEM_mem_write <= ID_EX_mem_write;
     EX_MEM_mem_to_reg <= ID_EX_mem_to_reg;
 end
+
+
+// ------------------ Forwarding and Hazard Unit Wires ------------------
+wire [1:0] ForwardA, ForwardB;
+wire       PCWrite, IF_ID_Write, Stall_ID_EX;
+
+// EX stage forwarding mux wires
+wire [31:0] alu_input_a_forwarded;
+wire [31:0] alu_input_b_pre_mux = (ID_EX_alu_src) ? ID_EX_imm : ID_EX_rd2;
+wire [31:0] alu_input_b_forwarded;
+
+// ------------------ Forwarding Unit ----------------------------------------------------------------
+ForwardingUnit fwd_unit (
+    .EX_RS1(rs1),       // RS1 from decode
+    .EX_RS2(rs2),       // RS2 from decode
+    .MEM_RD(EX_MEM_rd),
+    .WB_RD(MEM_WB_rd),
+    .MEM_RegWrite(EX_MEM_reg_write),
+    .WB_RegWrite(MEM_WB_reg_write),
+    .ForwardA(ForwardA),
+    .ForwardB(ForwardB)
+);
+
+// ----------ALU registers and forwarding logic------------------
+// ----------Forwarding registers for ALU inputs----------
+reg [31:0] alu_output;
+
+always @(negedge clk) begin
+    alu_output <= alu_out; // Store ALU output for forwarding
+end
+
+// Mux logic for ALU input forwarding
+assign alu_input_a_forwarded = (ForwardA == 2'b00) ? ID_EX_rd1 :
+                               (ForwardA == 2'b10) ? alu_output :
+                               (ForwardA == 2'b01) ? WB_result : ID_EX_rd1;
+
+assign alu_input_b_forwarded = (ForwardB == 2'b00) ? alu_input_b_pre_mux :
+                               (ForwardB == 2'b10) ? alu_output :
+                               (ForwardB == 2'b01) ? WB_result : alu_input_b_pre_mux;
+
+// Update ALU modules to use forwarded inputs
+alu_core alu_core (
+    .data1(alu_input_a_forwarded),
+    .data2(alu_input_b_forwarded),
+    .alu_control(alu_control),
+    .result(alu_out_standard)
+);
+
+alu_m_extension alu_mext_core (
+    .data1(alu_input_a_forwarded),
+    .data2(alu_input_b_forwarded),
+    .alu_control(alu_control),
+    .result(alu_out_mext)
+);
+
+// ------------------ Hazard Detection Unit ------------------
+HazardDetectionUnit hazard_unit (
+    .ID_RS1(rs1),
+    .ID_RS2(rs2),
+    .EX_RD(ID_EX_rd),
+    .EX_MemRead(ID_EX_mem_read),
+    .PCWrite(PCWrite),
+    .IF_ID_Write(IF_ID_Write),
+    .Stall_ID_EX(Stall_ID_EX)
+);
+
+// ------------------ Pipeline Control: PC and IF/ID ------------------
+// PC update (add PCWrite condition)
+
+// IF/ID Pipeline Register
+always @(posedge clk) begin
+    if (IF_ID_Write) begin
+        IF_ID_PC <= PC;
+        IF_ID_instr <= instr;
+    end
+end
+
+// ID/EX Pipeline Register - Insert NOP if Stall_ID_EX is 1
+always @(posedge clk) begin
+    if (Stall_ID_EX) begin
+        // Insert NOP: Clear control signals
+        ID_EX_reg_write <= 0;
+        ID_EX_mem_read  <= 0;
+        ID_EX_mem_write <= 0;
+        ID_EX_mem_to_reg <= 0;
+        ID_EX_branch <= 0;
+        ID_EX_alu_op <= 2'b00;
+        ID_EX_alu_src <= 0;
+    end else begin
+        ID_EX_PC <= IF_ID_PC;
+        ID_EX_rd1 <= rd1;
+        ID_EX_rd2 <= rd2;
+        ID_EX_imm <= imm;
+        ID_EX_rd <= rd;
+        ID_EX_funct3 <= funct3;
+        ID_EX_funct7 <= funct7;
+        ID_EX_reg_write <= reg_write;
+        ID_EX_mem_read <= mem_read;
+        ID_EX_mem_write <= mem_write;
+        ID_EX_mem_to_reg <= mem_to_reg;
+        ID_EX_alu_src <= alu_src;
+        ID_EX_alu_op <= alu_op;
+        ID_EX_branch <= branch;
+    end
+end
+
 
 // ----------- MEM Stage -----------
 wire [1:0] mem_data_type = EX_MEM_funct3[1:0];
